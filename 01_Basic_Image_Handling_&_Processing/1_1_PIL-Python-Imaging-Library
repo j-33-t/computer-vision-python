@@ -30,7 +30,7 @@ imgGrayscale.save("./resources/exports/messi-ronaldo_GrayScale.png")
 
 
 # 3. Create Thumbnails
-img.thumbnail((128,128))
+img.thumbnail((128,128)) # 128 pixels
 img.show()
 
 
@@ -41,3 +41,15 @@ region = img.crop(box)
 region = region.transpose(Image.ROTATE_180)
 img.paste(region,box)
 img.show()
+
+# 4. Resize and Rotate
+
+# 4.1 resize
+img = Image.open("./resources/exports/messi-ronaldo_GrayScale.jpg")
+out = img.resize((128,128))
+out.show()
+
+# 4.2 rotate
+out = img.rotate(45)
+out.show()
+

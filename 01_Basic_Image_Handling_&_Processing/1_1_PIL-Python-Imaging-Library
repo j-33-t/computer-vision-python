@@ -1,6 +1,5 @@
 # Imports
 from PIL import Image
-import os
 
 from matplotlib.image import thumbnail
 

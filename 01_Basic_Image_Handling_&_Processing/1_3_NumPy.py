@@ -1,6 +1,10 @@
+# Imports
+
 from PIL import Image
 import numpy as np
 import pandas as pd
+from pylab import *
+import glob
 
 # 1. Array Image Representation
 im = np.array(Image.open('./resources/original/messi-ronaldo.jpeg'))
@@ -90,13 +94,12 @@ result.show() # Contrast appear clearly
 #-----------------------------------------------------------------------#
 
 # 5. Averaging Images
-imlist = ('./resources/exports/')
 def compute_average(imlist):
     
     """ Compute the average of a list of images. """
     
     # open first image and make into array of type float
-    averageim = np.array(Image.open(imlist[0]), 'f')
+    averageim = np.array(Image.open(imlist[0:]), 'f')
     for imname in imlist[1:]:
         try:
             averageim += np.array(Image.open(imname))
@@ -105,3 +108,73 @@ def compute_average(imlist):
         averageim /= len(imlist)
     # return average as uint8
     return np.array(averageim, 'uint8')
+
+# Testing Function
+
+path = ('./resources/exports/messi-ronaldo_GrayScale.jpg')
+
+result = Image.fromarray(compute_average(path))
+result.show()
+
+#-----------------------------------------------------------------------#
+
+# PRINCIPAL COMPONENT ANALYSIS (PCA) of Images
+
+def pca(X):
+    """ Principal Component Analysis
+    input: X, matrix with training data stored as flattened arrays in rows return: projection matrix (with important dimensions first), variance and mean."""
+    
+    # get dimensions
+    num_data,dim = X.shape
+    
+    # center data
+    mean_X = X.mean(axis=0) 
+    X = X - mean_X
+    
+    if dim>num_data:
+        # PCA - compact trick used
+        M = np.dot(X,X.T) 
+        # covariance matrix
+        e,EV = np.linalg.eigh(M) 
+        # eigenvalues and eigenvectors
+        tmp = np.dot(X.T,EV).T # this is the compact trick
+        V = tmp[::-1] # reverse since last eigenvectors are the ones we want 
+        S = np.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order 
+        for i in range(V.shape[1]):
+            V[:,i] /= S
+    else:
+        # PCA - SVD used
+        U,S,V = np.linalg.svd(X)
+        V = V[:num_data] # only makes sense to return the first num_data
+        
+    # return the projection matrix, the variance and the mean
+    return V,S,mean_X
+
+
+# Testing Function
+
+# Step 1 --------
+# Store all images objects as list 
+
+imlist = []
+for filename in glob.glob('./resources/a_selected_thumbs/*'):
+    im=Image.open(filename)
+    imlist.append(im)
+
+# Step 2 --------
+im = array(imlist[0]) # open one image to get size 
+m,n = im.shape # get the size of the images
+imnbr = len(imlist) # get the number of images
+# create matrix to store all flattened images
+immatrix = array([array(im).flatten() for im in imlist],'f')
+# perform PCA
+projection_matrix,variance,mean1 = pca(immatrix)
+# show some images (mean and 7 first modes)
+figure()
+gray()
+subplot(2,4,1) 
+imshow(mean1.reshape(m,n)) 
+for i in range(7):
+    subplot(2,4,i+2) 
+    imshow(projection_matrix[i].reshape(m,n))
+show()

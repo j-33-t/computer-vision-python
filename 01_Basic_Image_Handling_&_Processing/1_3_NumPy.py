@@ -64,3 +64,44 @@ function_test = Image.fromarray(imresize(im, (300,200)))
 function_test.show()
 
 #-----------------------------------------------------------------------#
+
+# 4. HISTOGRAM EQUALIZATION
+
+# function for histogram equalization
+def histeq(im,nbr_bins=256):
+    """ Histogram equalization of a grayscale image. """
+    # get image histogram
+    imhist,bins = np.histogram(im.flatten(),nbr_bins,normed=True) 
+    cdf = imhist.cumsum() # cumulative distribution function 
+    cdf = 255 * cdf / cdf[-1] # normalize
+    
+    # use linear interpolation of cdf to find new pixel values
+    im2 = np.interp(im.flatten(),bins[:-1],cdf)
+    
+    return im2.reshape(im.shape), cdf
+
+# Testing function
+im = np.array(Image.open("./resources/exports/messi-ronaldo_GrayScale.jpg"))
+functionTest2 ,cdf = histeq(im)
+result =  Image.fromarray(np.uint8(functionTest2))
+result.show() # Contrast appear clearly
+
+
+#-----------------------------------------------------------------------#
+
+# 5. Averaging Images
+imlist = ('./resources/exports/')
+def compute_average(imlist):
+    
+    """ Compute the average of a list of images. """
+    
+    # open first image and make into array of type float
+    averageim = np.array(Image.open(imlist[0]), 'f')
+    for imname in imlist[1:]:
+        try:
+            averageim += np.array(Image.open(imname))
+        except:
+            print(imname + '...skipped') 
+        averageim /= len(imlist)
+    # return average as uint8
+    return np.array(averageim, 'uint8')
